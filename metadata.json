@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Ana v1: Polarized Ring Simulation",
+  "description": "An interactive visualization of a 6-tile ring simulation with an AI-powered chatbot assistant for system analysis and guidance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
