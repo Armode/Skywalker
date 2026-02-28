@@ -7,6 +7,7 @@ import {
   Cloud, Mic, Globe, MicOff, Volume2, ArrowRightCircle, ArrowLeftCircle, Terminal,
   Infinity, Rocket, Anchor
 } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { SimulationState, Direction, TileState, Sign, PersonalityScore } from './types';
 import { 
   TILES_CONFIG, 
