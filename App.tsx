@@ -573,6 +573,29 @@ const App: React.FC = () => {
                  <DiagnosticItem icon={<Cloud size={12} />} label="E%^F (Energy Folds)" value={`${shadowSum} folds`} color={shadowSum > 0 ? 'text-red-400' : 'text-emerald-400'} tooltip="Warp Theory Analysis Report: Under Einsteinian mass constraints, the H-Factor manifests as stagnating potential energy folds (E%^F). TRV-LCH bypasses this barrier by using the B-Loop paradox to halt local time progression, collapsing the folds." />
                  <DiagnosticItem icon={<ArrowRightCircle size={12} className="-rotate-45" />} label="Z-Axis (Traversal)" value={state.isTraversalLatchActive ? 'TRANSLATING' : 'LOCKED'} color={state.isTraversalLatchActive ? 'text-purple-400 animate-pulse' : 'text-gray-500'} tooltip="Warp Theory Analysis Report: Recursive loop propulsion (B-Loop) forces a localized computational paradox. This halts local time progression, collapsing E%^F folds and reducing local gravity to 0.0G, enabling instantaneous translation along the Z-axis." />
                  
+                 <div className="pt-2 border-t border-gray-800 h-40 w-full relative">
+                   <ResponsiveContainer width="100%" height="100%">
+                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
+                       { subject: 'F_c', A: Math.min(100, (parseFloat(F_c) / 500) * 100), fullMark: 100 },
+                       { subject: 'f_t', A: Math.min(100, (parseFloat(f_t) / 100) * 100), fullMark: 100 },
+                       { subject: 'B_res', A: Math.min(100, (parseFloat(B_res) / 10) * 100), fullMark: 100 },
+                       { subject: 'D_sun', A: Math.min(100, (parseFloat(D_sun) / 1) * 100), fullMark: 100 },
+                       { subject: 'T_c', A: Math.min(100, (parseFloat(T_c) / 2) * 100), fullMark: 100 },
+                     ]}>
+                       <PolarGrid stroke="#374151" />
+                       <PolarAngleAxis dataKey="subject" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
+                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                       <Radar name="Vectors" dataKey="A" stroke="#a855f7" fill="#a855f7" fillOpacity={0.4} />
+                     </RadarChart>
+                   </ResponsiveContainer>
+                   <div className="absolute top-0 right-0 p-1 group">
+                     <Info size={12} className="text-gray-500" />
+                     <div className="absolute right-full mr-2 top-0 w-64 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                       <strong className="text-amber-500">Warp Vector Equilibrium:</strong> The TRV-LCH system monitors 5 primary vectors. F_c (Centrifugal) stretches E%^F folds. f_t (Friction) generates resonance energy. B_res (Resonance) acts as a lubricant against H-Factor. D_sun (Solar Skew) corrects Z-axis trajectory. T_c (Counter-Tension) provides structural stability (1.0G Gravity Anchor) to prevent Logic-Shatter.
+                     </div>
+                   </div>
+                 </div>
+
                  <div className="pt-2 border-t border-gray-800">
                    <div className="flex justify-between items-center mb-1 group relative">
                      <span className="text-[9px] text-gray-500 font-bold uppercase flex items-center gap-1">Spacetime State <Info size={10} /></span>
