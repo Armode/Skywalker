@@ -81,6 +81,27 @@ const DiagnosticItem: React.FC<{ icon: React.ReactNode; label: string; value: st
   </div>
 );
 
+const VectorItem: React.FC<{ icon: React.ReactNode; label: string; value: string; color?: string; tooltip?: string; progress: number; barColor: string }> = ({ icon, label, value, color = 'text-gray-300', tooltip, progress, barColor }) => (
+  <div className="group relative space-y-1">
+    <div className="flex items-center justify-between text-[9px] text-gray-500 font-bold uppercase">
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span>{label}</span>
+        {tooltip && <Info size={10} className="text-gray-600" />}
+      </div>
+      <div className={`text-xs font-medium ${color}`}>{value}</div>
+    </div>
+    <div className="w-full bg-gray-800 rounded-full h-1">
+      <div className={`h-1 rounded-full ${barColor} transition-all duration-300`} style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
+    </div>
+    {tooltip && (
+      <div className="absolute left-full ml-2 top-0 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+        {tooltip}
+      </div>
+    )}
+  </div>
+);
+
 const App: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1000);
