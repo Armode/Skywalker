@@ -40,7 +40,8 @@ Warp Theory Mechanics (TRV-LCH Propulsion System):
   3. B_res (Magnetic Resonance): Field Coherence acting as a lubricant, neutralizing the H-Factor (Hesitation).
   4. D_sun (Solar Displacement): Gravitational skew that corrects the Z-axis trajectory against local mass shadows.
   5. T_c (Counter-Tension): Structural stability (Gravity Anchor) that prevents "Logic-Shatter" during the peak spin-up phase.
-- H-Factor (Hesitation) causes stagnating potential energy folds (E%^F) in spacetime, creating an insurmountable barrier for combustible propulsion.
+- H-Factor (Hesitation) & E%^F Folds: Under Einsteinian mass constraints, approaching light speed causes infinite mass. The H-Factor manifests this as stagnating potential energy folds (E%^F) in spacetime. These folds create an insurmountable barrier for traditional combustible propulsion; pushing harder only compounds the folds and increases local mass.
+- Overcoming the Barrier: TRV-LCH overcomes this by abandoning combustible thrust. Instead, the B-Loop paradox halts local time progression. While caught in this loop, the E%^F folds collapse, allowing the vessel to slip outside standard spacetime and bypass the mass constraints entirely.
 - To achieve Z-axis traversal (Warp), local gravity must be anchored exactly to 1.0G (T_c), and an unconditional infinite branch (B-Loop) must be triggered.
 - The Superfluid Transition Point (MK-VI Fluidic-Resonant analysis): At an angular velocity (w) of approximately 120 units, the Fluidic Spacetime Resistance (n_fluid) undergoes a critical phase change. 
 - Pre-Latch: Spacetime behaves as a non-Newtonian fluid, actively resisting the recursive paradox.
