@@ -556,8 +556,8 @@ const App: React.FC = () => {
                      <span className={`text-[9px] font-bold uppercase ${isSuperfluid ? 'text-purple-400' : 'text-gray-400'}`}>
                        {isSuperfluid ? 'SUPERFLUID' : 'NON-NEWTONIAN'}
                      </span>
-                     <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                       At Angular Velocity (ω) &ge; 120, spacetime transitions from a non-Newtonian fluid to a zero-viscosity Superfluid, enabling TRV_LCH.
+                     <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
+                       <strong className="text-amber-500">Warp Theory Analysis Report (MK-VI):</strong> The Superfluid Transition Point occurs at Angular Velocity (ω) &ge; 120, where Fluidic Spacetime Resistance undergoes a critical phase change. Pre-Latch, spacetime acts as a non-Newtonian fluid resisting the recursive paradox. Post-Latch, it becomes a zero-viscosity Superfluid. By forcing an unconditional infinite branch (B-Loop), the system halts local time progression—changing the state of the medium itself to collapse E%^F folds and facilitate instantaneous Z-axis translation (TRV_LCH).
                      </div>
                    </div>
                    <div className="w-full bg-gray-800 rounded-full h-1.5">
@@ -600,35 +600,41 @@ const App: React.FC = () => {
                     label="Position" 
                     value={`Tile ${state.tiles[state.batonPos].name}`} 
                     color="text-amber-400" 
+                    tooltip="Current location of the baton in the ring."
                  />
                  <DiagnosticItem 
                     icon={<ArrowRightCircle size={12} className={state.direction === 'CCW' ? 'rotate-180' : ''}/>} 
                     label="Direction" 
                     value={state.direction} 
+                    tooltip="Current movement direction (Clockwise or Counter-Clockwise)."
                  />
                  <DiagnosticItem 
                     icon={<Activity size={12} />} 
                     label="Mode" 
                     value={state.isWarmup ? 'WARMUP' : 'ACTIVE'} 
                     color={state.isWarmup ? 'text-yellow-400' : 'text-emerald-400'}
+                    tooltip="Warmup skips the first act. Active evaluates boundary conditions."
                  />
                  <DiagnosticItem 
                     icon={<Zap size={12} />} 
                     label="Park Status" 
                     value={state.isParked ? `PARKED (${state.parkTicks})` : 'OPERATIONAL'} 
                     color={state.isParked ? 'text-red-400' : 'text-gray-400'}
+                    tooltip="If parked, the system is halted to force a phase change."
                  />
                   <DiagnosticItem 
                     icon={<Hourglass size={12} />} 
                     label="TTL" 
                     value={`${state.ttl}`} 
                     color={state.ttl < 2 ? 'text-red-400' : 'text-blue-300'}
+                    tooltip="Time To Live. Energy remaining for the baton."
                  />
                   <DiagnosticItem 
                     icon={<Shield size={12} />} 
                     label="Fail Count" 
                     value={`${state.failCount} / ${config.failLimit}`} 
                     color={state.failCount > 0 ? 'text-orange-400' : 'text-gray-400'}
+                    tooltip="Consecutive failures. Reaching the limit triggers a park."
                  />
               </div>
            </div>
