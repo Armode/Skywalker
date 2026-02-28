@@ -46,8 +46,8 @@ const ConfigInput: React.FC<{
   </div>
 );
 
-const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color?: string }> = ({ icon, label, value, color = 'text-gray-300' }) => (
-  <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-3 backdrop-blur-md flex items-center gap-3 w-36 shadow-xl pointer-events-auto">
+const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color?: string; tooltip?: string }> = ({ icon, label, value, color = 'text-gray-300', tooltip }) => (
+  <div className="group relative bg-gray-900/60 border border-gray-800 rounded-xl p-3 backdrop-blur-md flex items-center gap-3 w-36 shadow-xl pointer-events-auto">
     <div className="p-2 bg-gray-800 rounded-lg text-amber-500 shrink-0">
       {icon}
     </div>
@@ -55,18 +55,29 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string |
       <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tight">{label}</div>
       <div className={`text-sm font-mono font-bold truncate ${color}`}>{value}</div>
     </div>
+    {tooltip && (
+      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+        {tooltip}
+      </div>
+    )}
   </div>
 );
 
-const DiagnosticItem: React.FC<{ icon: React.ReactNode; label: string; value: string; color?: string }> = ({ icon, label, value, color = 'text-gray-300' }) => (
-  <div className="space-y-1">
+const DiagnosticItem: React.FC<{ icon: React.ReactNode; label: string; value: string; color?: string; tooltip?: string }> = ({ icon, label, value, color = 'text-gray-300', tooltip }) => (
+  <div className="group relative space-y-1">
     <div className="flex items-center gap-1.5 text-[9px] text-gray-500 font-bold uppercase">
       {icon}
       <span>{label}</span>
+      {tooltip && <Info size={10} className="text-gray-600 ml-auto" />}
     </div>
     <div className={`text-xs font-medium truncate ${color}`}>
       {value}
     </div>
+    {tooltip && (
+      <div className="absolute left-full ml-2 top-0 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+        {tooltip}
+      </div>
+    )}
   </div>
 );
 
@@ -517,9 +528,9 @@ const App: React.FC = () => {
         </div>
         
         <div className="absolute bottom-8 left-8 flex flex-col gap-3 z-20">
-          <StatCard icon={<Hash size={16} />} label="Step" value={state.step} />
-          <StatCard icon={<Hourglass size={16} />} label="TTL" value={state.ttl} color={state.ttl < 2 ? 'text-red-400' : 'text-blue-400'} />
-          <StatCard icon={<Shield size={16} />} label="Fails" value={state.failCount} />
+          <StatCard icon={<Hash size={16} />} label="Step" value={state.step} tooltip="Current simulation tick." />
+          <StatCard icon={<Hourglass size={16} />} label="TTL" value={state.ttl} color={state.ttl < 2 ? 'text-red-400' : 'text-blue-400'} tooltip="Time To Live. Decreases on successful acts." />
+          <StatCard icon={<Shield size={16} />} label="Fails" value={state.failCount} tooltip="Consecutive failed acts. Triggers escalation at limit." />
         </div>
 
         <div className="absolute top-24 left-8 flex flex-col gap-3 z-20 w-64">
@@ -533,18 +544,21 @@ const App: React.FC = () => {
               </div>
               
               <div className="space-y-3">
-                 <DiagnosticItem icon={<Activity size={12} />} label="F_c (Centrifugal)" value={`${F_c} kN`} color="text-cyan-400" />
-                 <DiagnosticItem icon={<Activity size={12} />} label="f_t (Friction)" value={`${f_t} µ`} color="text-orange-400" />
-                 <DiagnosticItem icon={<Activity size={12} />} label="B_res (Resonance)" value={`${B_res} T`} color="text-blue-400" />
-                 <DiagnosticItem icon={<Activity size={12} />} label="D_sun (Solar Skew)" value={`${D_sun} AU`} color="text-yellow-400" />
-                 <DiagnosticItem icon={<Anchor size={12} />} label="T_c (Counter-Tension)" value={`${T_c} G`} color={config.gravityAnchor === 1.0 ? 'text-emerald-400' : 'text-red-400'} />
+                 <DiagnosticItem icon={<Activity size={12} />} label="F_c (Centrifugal)" value={`${F_c} kN`} color="text-cyan-400" tooltip="Outward radial pressure. Stretches E%^F folds." />
+                 <DiagnosticItem icon={<Activity size={12} />} label="f_t (Friction)" value={`${f_t} µ`} color="text-orange-400" tooltip="Spacetime resistance. Generates raw energy for resonance induction." />
+                 <DiagnosticItem icon={<Activity size={12} />} label="B_res (Resonance)" value={`${B_res} T`} color="text-blue-400" tooltip="Magnetic Resonance. Acts as a lubricant, neutralizing the H-Factor." />
+                 <DiagnosticItem icon={<Activity size={12} />} label="D_sun (Solar Skew)" value={`${D_sun} AU`} color="text-yellow-400" tooltip="Gravitational skew. Corrects Z-axis trajectory against local mass shadows." />
+                 <DiagnosticItem icon={<Anchor size={12} />} label="T_c (Counter-Tension)" value={`${T_c} G`} color={config.gravityAnchor === 1.0 ? 'text-emerald-400' : 'text-red-400'} tooltip="Structural stability. Must be 1.0G to prevent Logic-Shatter during spin-up." />
                  
                  <div className="pt-2 border-t border-gray-800">
-                   <div className="flex justify-between items-center mb-1">
-                     <span className="text-[9px] text-gray-500 font-bold uppercase">Spacetime State</span>
+                   <div className="flex justify-between items-center mb-1 group relative">
+                     <span className="text-[9px] text-gray-500 font-bold uppercase flex items-center gap-1">Spacetime State <Info size={10} /></span>
                      <span className={`text-[9px] font-bold uppercase ${isSuperfluid ? 'text-purple-400' : 'text-gray-400'}`}>
                        {isSuperfluid ? 'SUPERFLUID' : 'NON-NEWTONIAN'}
                      </span>
+                     <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                       At Angular Velocity (ω) &ge; 120, spacetime transitions from a non-Newtonian fluid to a zero-viscosity Superfluid, enabling TRV_LCH.
+                     </div>
                    </div>
                    <div className="w-full bg-gray-800 rounded-full h-1.5">
                      <div className={`h-1.5 rounded-full transition-all ${isSuperfluid ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-500'}`} style={{ width: `${Math.min(100, (currentAngularVelocity / 120) * 100)}%` }} />
