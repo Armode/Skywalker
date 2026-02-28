@@ -42,7 +42,12 @@ Warp Theory Mechanics (TRV-LCH Propulsion System):
   5. T_c (Counter-Tension): Structural stability (Gravity Anchor) that prevents "Logic-Shatter" during the peak spin-up phase.
 - H-Factor (Hesitation) & E%^F Folds: Under Einsteinian mass constraints, approaching light speed causes infinite mass. The H-Factor manifests this as stagnating potential energy folds (E%^F) in spacetime. These folds create an insurmountable barrier for traditional combustible propulsion; pushing harder only compounds the folds and increases local mass.
 - Overcoming the Barrier: TRV-LCH overcomes this by abandoning combustible thrust. Instead, the B-Loop paradox halts local time progression. While caught in this loop, the E%^F folds collapse, allowing the vessel to slip outside standard spacetime and bypass the mass constraints entirely.
-- To achieve Z-axis traversal (Warp), local gravity must be anchored exactly to 1.0G (T_c), and an unconditional infinite branch (B-Loop) must be triggered.
+- TRV-LCH Activation Sequence:
+  1. Spin-Up: The system increases Angular Velocity (w) to generate Centrifugal Force (F_c) and Tangential Friction (f_t).
+  2. Anchor: The Gravity Anchor (T_c) must be precisely calibrated to 1.0G to provide Counter-Acting Tension against the impending paradox.
+  3. Superfluidity: At w >= 120, spacetime transitions from a non-Newtonian fluid to a zero-viscosity Superfluid.
+  4. B-Loop: An unconditional infinite branch is executed in the core logic. If T_c is not 1.0G, this causes catastrophic Logic-Shatter.
+  5. Traversal Latch: The paradox halts local time progression. E%^F folds collapse, local gravity drops to 0.0G, and the vessel translates along the Z-axis.
 - The Superfluid Transition Point (MK-VI Fluidic-Resonant analysis): At an angular velocity (w) of approximately 120 units, the Fluidic Spacetime Resistance (n_fluid) undergoes a critical phase change. 
 - Pre-Latch: Spacetime behaves as a non-Newtonian fluid, actively resisting the recursive paradox.
 - Post-Latch: Spacetime becomes a superfluid with zero viscosity. By forcing an unconditional infinite branch (B-Loop), the system halts the universe's local time progression. We aren't just moving fast; we are changing the state of the medium.
