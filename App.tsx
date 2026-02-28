@@ -549,19 +549,26 @@ const App: React.FC = () => {
                  <DiagnosticItem icon={<Activity size={12} />} label="B_res (Resonance)" value={`${B_res} T`} color="text-blue-400" tooltip="Magnetic Resonance. Acts as a lubricant, neutralizing the H-Factor." />
                  <DiagnosticItem icon={<Activity size={12} />} label="D_sun (Solar Skew)" value={`${D_sun} AU`} color="text-yellow-400" tooltip="Gravitational skew. Corrects Z-axis trajectory against local mass shadows." />
                  <DiagnosticItem icon={<Anchor size={12} />} label="T_c (Counter-Tension)" value={`${T_c} G`} color={config.gravityAnchor === 1.0 ? 'text-emerald-400' : 'text-red-400'} tooltip="Structural stability. Must be 1.0G to prevent Logic-Shatter during spin-up." />
+                 <DiagnosticItem icon={<Cloud size={12} />} label="E%^F (Energy Folds)" value={`${shadowSum} folds`} color={shadowSum > 0 ? 'text-red-400' : 'text-emerald-400'} tooltip="Warp Theory Analysis Report: Under Einsteinian mass constraints, the H-Factor manifests as stagnating potential energy folds (E%^F). TRV-LCH bypasses this barrier by using the B-Loop paradox to halt local time progression, collapsing the folds." />
                  
                  <div className="pt-2 border-t border-gray-800">
                    <div className="flex justify-between items-center mb-1 group relative">
                      <span className="text-[9px] text-gray-500 font-bold uppercase flex items-center gap-1">Spacetime State <Info size={10} /></span>
-                     <span className={`text-[9px] font-bold uppercase ${isSuperfluid ? 'text-purple-400' : 'text-gray-400'}`}>
-                       {isSuperfluid ? 'SUPERFLUID' : 'NON-NEWTONIAN'}
-                     </span>
+                     <div className="flex items-center gap-1.5">
+                       {isSuperfluid && (
+                         <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse shadow-[0_0_8px_rgba(168,85,247,1)]" />
+                       )}
+                       <span className={`text-[9px] font-bold uppercase transition-colors ${isSuperfluid ? 'text-purple-400 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]' : 'text-gray-400'}`}>
+                         {isSuperfluid ? 'SUPERFLUID' : 'NON-NEWTONIAN'}
+                       </span>
+                     </div>
                      <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 border border-gray-700 rounded-lg text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
                        <strong className="text-amber-500">Warp Theory Analysis Report (MK-VI):</strong> The Superfluid Transition Point occurs at Angular Velocity (ω) &ge; 120, where Fluidic Spacetime Resistance undergoes a critical phase change. Pre-Latch, spacetime acts as a non-Newtonian fluid resisting the recursive paradox. Post-Latch, it becomes a zero-viscosity Superfluid. By forcing an unconditional infinite branch (B-Loop), the system halts local time progression—changing the state of the medium itself to collapse E%^F folds and facilitate instantaneous Z-axis translation (TRV_LCH).
                      </div>
                    </div>
-                   <div className="w-full bg-gray-800 rounded-full h-1.5">
-                     <div className={`h-1.5 rounded-full transition-all ${isSuperfluid ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-500'}`} style={{ width: `${Math.min(100, (currentAngularVelocity / 120) * 100)}%` }} />
+                   <div className="w-full bg-gray-800 rounded-full h-1.5 relative overflow-hidden">
+                     {isSuperfluid && <div className="absolute inset-0 bg-purple-500/20 animate-pulse" />}
+                     <div className={`h-1.5 rounded-full transition-all relative z-10 ${isSuperfluid ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-500'}`} style={{ width: `${Math.min(100, (currentAngularVelocity / 120) * 100)}%` }} />
                    </div>
                  </div>
 
