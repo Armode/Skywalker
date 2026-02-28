@@ -4,7 +4,8 @@ import {
   Play, Pause, RotateCcw, Activity, Shield, Hash, ArrowRight, Zap, Info, 
   Settings, X, SlidersHorizontal, Loader2, PlayCircle, StopCircle, 
   Hourglass, Monitor, MapPin, Gauge, Search, LayoutGrid, CheckCircle2, Heart,
-  Cloud, Mic, Globe, MicOff, Volume2, ArrowRightCircle, ArrowLeftCircle, Terminal
+  Cloud, Mic, Globe, MicOff, Volume2, ArrowRightCircle, ArrowLeftCircle, Terminal,
+  Infinity, Rocket, Anchor
 } from 'lucide-react';
 import { SimulationState, Direction, TileState, Sign, PersonalityScore } from './types';
 import { 
@@ -23,14 +24,15 @@ const ConfigInput: React.FC<{
   label: string;
   description: string;
   value: number;
+  displayValue?: string | number;
   min: number;
   max: number;
   onChange: (v: number) => void;
-}> = ({ label, description, value, min, max, onChange }) => (
+}> = ({ label, description, value, displayValue, min, max, onChange }) => (
   <div className="space-y-2">
     <div className="flex justify-between items-center">
       <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{label}</label>
-      <span className="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">{value}</span>
+      <span className="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">{displayValue ?? value}</span>
     </div>
     <p className="text-[10px] text-gray-500 leading-tight">{description}</p>
     <input 
@@ -82,7 +84,8 @@ const App: React.FC = () => {
     hesitationStrength: DEFAULT_HESITATION,
     parkDuration: DEFAULT_PARK,
     failLimit: DEFAULT_FAIL_LIMIT,
-    initialTtl: DEFAULT_TTL
+    initialTtl: DEFAULT_TTL,
+    gravityAnchor: 0.8
   });
 
   const [state, setState] = useState<SimulationState>(() => {
@@ -107,6 +110,10 @@ const App: React.FC = () => {
       isScanning: false,
       scanIdx: -1,
       isSorting: false,
+      gravityAnchor: 0.8,
+      isTraversalLatchActive: false,
+      bLoopActive: false,
+      angularVelocity: 0,
       interactionCount: 0,
       personality: {
         optimistic: 0,
@@ -126,7 +133,7 @@ const App: React.FC = () => {
       ...prev,
       isScanning: true,
       scanIdx: 0,
-      history: [...prev.history, "Initiating full-ring heuristic scan..."]
+      history: [...prev.history, "Initiating Logic-Shear scan..."]
     }));
   }, [state.isScanning, state.isSorting]);
 
@@ -136,7 +143,7 @@ const App: React.FC = () => {
     setState(prev => ({
       ...prev,
       isSorting: true,
-      history: [...prev.history, "Initiating domain realignment (Sort operation)..."]
+      history: [...prev.history, "Initiating Phase Inversion (TRV_LCH)..."]
     }));
 
     setTimeout(() => {
@@ -154,6 +161,22 @@ const App: React.FC = () => {
       });
     }, 1500);
   }, [state.isScanning, state.isSorting]);
+
+  const triggerBLoop = useCallback(() => {
+    if (config.gravityAnchor === 1.0) {
+      setState(prev => ({
+        ...prev,
+        bLoopActive: true,
+        isTraversalLatchActive: true,
+        history: [...prev.history, "B-Loop Triggered: TRV_LCH Engaged. Spacetime Superfluidity Reached."]
+      }));
+    } else {
+      setState(prev => ({
+        ...prev,
+        history: [...prev.history, "B-Loop Failed: Gravity Anchor must be exactly 1.0G to prevent Logic-Shatter."]
+      }));
+    }
+  }, [config.gravityAnchor]);
 
   const updatePersonalityFromInteraction = useCallback((aiMood: string) => {
     setState(prev => {
@@ -201,13 +224,13 @@ const App: React.FC = () => {
             isScanning: false,
             scanIdx: -1,
             lastScanReport: report,
-            history: [...prev.history, `Scan: Stability @ ${report.stability}%`]
+            history: [...prev.history, `Scan: Spacetime Stability @ ${report.stability}% | E%^F @ ${report.entropy}`]
           };
         }
       }
 
       let newHistory = [...prev.history];
-      let newTiles = prev.tiles.map(t => ({ ...t, shadow: Math.max(0, t.shadow - 1) }));
+      let newTiles = prev.tiles.map(t => ({ ...t, shadow: prev.isTraversalLatchActive ? 0 : Math.max(0, t.shadow - 1) }));
       let newBatonPos = prev.batonPos;
       let newDirection = prev.direction;
       let newIsWarmup = prev.isWarmup;
@@ -257,7 +280,7 @@ const App: React.FC = () => {
             newFailCount += 1;
             newDirection = newDirection === 'CW' ? 'CCW' : 'CW';
             newTiles[2] = { ...newTiles[2], shadow: Math.min(MAX_SHADOW, newTiles[2].shadow + config.hesitationStrength) };
-            newHistory.push(`Baton at C: ACT FAILED (${newFailCount}/${config.failLimit}). Reversing.`);
+            newHistory.push(`Baton at C: ACT FAILED (${newFailCount}/${config.failLimit}). Reversing. H-Factor increased.`);
             
             if (newFailCount >= config.failLimit) {
               newIsParked = true;
@@ -321,7 +344,9 @@ const App: React.FC = () => {
         history: ['System Reset Triggered'],
         step: 0,
         isScanning: false,
-        isSorting: false
+        isSorting: false,
+        isTraversalLatchActive: false,
+        bLoopActive: false
       };
     });
     setIsPlaying(false);
@@ -348,6 +373,15 @@ const App: React.FC = () => {
       session.start();
     }
   };
+
+  const shadowSum = state.tiles.reduce((acc, t) => acc + t.shadow, 0);
+  const currentAngularVelocity = isPlaying ? Math.min(200, Math.max(0, 150000 / speed - 50)) : 0;
+  const F_c = (currentAngularVelocity * 1.5).toFixed(1);
+  const f_t = (shadowSum * 2.4).toFixed(1);
+  const B_res = (100 / config.hesitationStrength).toFixed(1);
+  const D_sun = (Math.sin(state.step / 5) * 0.5).toFixed(2);
+  const T_c = config.gravityAnchor.toFixed(1);
+  const isSuperfluid = currentAngularVelocity >= 120;
 
   return (
     <div className="flex h-screen bg-black text-white font-sans selection:bg-amber-500/30 overflow-hidden">
@@ -387,12 +421,19 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center relative">
-          <div className="absolute w-[400px] h-[400px] border border-gray-800/50 rounded-full" />
-          <div className="absolute w-[200px] h-[200px] border border-gray-800/30 rounded-full" />
-          
-          <div className="relative w-[400px] h-[400px]">
-            {state.tiles.map((tile, i) => {
+        <div className="flex-1 flex items-center justify-center relative perspective-[1000px]">
+          <div 
+            className="relative flex items-center justify-center w-[500px] h-[500px] transition-all duration-1000 transform-style-preserve-3d"
+            style={{
+              transform: state.isTraversalLatchActive ? 'rotateX(60deg) translateZ(150px) scale(1.2)' : 'rotateX(0deg) translateZ(0px) scale(1)',
+              filter: state.isTraversalLatchActive ? 'drop-shadow(0 0 50px rgba(168,85,247,0.4))' : 'none'
+            }}
+          >
+            <div className="absolute w-[400px] h-[400px] border border-gray-800/50 rounded-full" />
+            <div className="absolute w-[200px] h-[200px] border border-gray-800/30 rounded-full" />
+            
+            <div className="relative w-[400px] h-[400px]">
+              {state.tiles.map((tile, i) => {
               const angle = (i * 60 - 90) * (Math.PI / 180);
               const radius = 180;
               const x = radius * Math.cos(angle) + 200;
@@ -421,6 +462,7 @@ const App: React.FC = () => {
               );
             })}
           </div>
+          </div>
           
           <div className="absolute text-center z-0 pointer-events-none flex flex-col items-center justify-center transition-all duration-300">
             {state.isScanning ? (
@@ -434,9 +476,9 @@ const App: React.FC = () => {
             ) : state.isSorting ? (
               <>
                 <Loader2 className="text-purple-500 animate-spin mb-3 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" size={48} />
-                <div className="text-[10px] text-purple-400 font-bold uppercase tracking-[0.2em] mb-1 animate-pulse">Optimizing</div>
+                <div className="text-[10px] text-purple-400 font-bold uppercase tracking-[0.2em] mb-1 animate-pulse">Phase Inversion</div>
                 <div className="text-4xl font-black italic tracking-tighter text-purple-100 drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                  SORTING
+                  TRV_LCH
                 </div>
               </>
             ) : (
@@ -478,6 +520,54 @@ const App: React.FC = () => {
           <StatCard icon={<Hash size={16} />} label="Step" value={state.step} />
           <StatCard icon={<Hourglass size={16} />} label="TTL" value={state.ttl} color={state.ttl < 2 ? 'text-red-400' : 'text-blue-400'} />
           <StatCard icon={<Shield size={16} />} label="Fails" value={state.failCount} />
+        </div>
+
+        <div className="absolute top-24 left-8 flex flex-col gap-3 z-20 w-64">
+           <div className="bg-gray-900/90 border border-gray-800 rounded-2xl p-4 backdrop-blur-xl shadow-2xl pointer-events-auto">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-3">
+                 <div className="flex items-center gap-2">
+                    <Rocket size={16} className="text-purple-500" />
+                    <span className="text-xs font-black text-white uppercase tracking-wider">TRV-LCH Propulsion</span>
+                 </div>
+                 <div className={`w-2 h-2 rounded-full ${state.isTraversalLatchActive ? 'bg-purple-500 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-600'}`} />
+              </div>
+              
+              <div className="space-y-3">
+                 <DiagnosticItem icon={<Activity size={12} />} label="F_c (Centrifugal)" value={`${F_c} kN`} color="text-cyan-400" />
+                 <DiagnosticItem icon={<Activity size={12} />} label="f_t (Friction)" value={`${f_t} µ`} color="text-orange-400" />
+                 <DiagnosticItem icon={<Activity size={12} />} label="B_res (Resonance)" value={`${B_res} T`} color="text-blue-400" />
+                 <DiagnosticItem icon={<Activity size={12} />} label="D_sun (Solar Skew)" value={`${D_sun} AU`} color="text-yellow-400" />
+                 <DiagnosticItem icon={<Anchor size={12} />} label="T_c (Counter-Tension)" value={`${T_c} G`} color={config.gravityAnchor === 1.0 ? 'text-emerald-400' : 'text-red-400'} />
+                 
+                 <div className="pt-2 border-t border-gray-800">
+                   <div className="flex justify-between items-center mb-1">
+                     <span className="text-[9px] text-gray-500 font-bold uppercase">Spacetime State</span>
+                     <span className={`text-[9px] font-bold uppercase ${isSuperfluid ? 'text-purple-400' : 'text-gray-400'}`}>
+                       {isSuperfluid ? 'SUPERFLUID' : 'NON-NEWTONIAN'}
+                     </span>
+                   </div>
+                   <div className="w-full bg-gray-800 rounded-full h-1.5">
+                     <div className={`h-1.5 rounded-full transition-all ${isSuperfluid ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-500'}`} style={{ width: `${Math.min(100, (currentAngularVelocity / 120) * 100)}%` }} />
+                   </div>
+                 </div>
+
+                 <div className="pt-2">
+                   <button 
+                     onClick={triggerBLoop}
+                     className={`w-full py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                       state.isTraversalLatchActive 
+                         ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
+                         : config.gravityAnchor === 1.0 
+                           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' 
+                           : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                     }`}
+                   >
+                     <Infinity size={14} />
+                     {state.isTraversalLatchActive ? 'B-Loop Active (TRV_LCH)' : 'Initiate B-Loop'}
+                   </button>
+                 </div>
+              </div>
+           </div>
         </div>
 
         <div className="absolute bottom-8 right-8 flex flex-col gap-3 z-20">
@@ -553,8 +643,14 @@ const App: React.FC = () => {
             <h2 className="text-2xl font-black italic tracking-tighter uppercase mb-8">Simulation Config</h2>
             <div className="space-y-8">
               <ConfigInput 
-                label="Hesitation Strength" 
-                description="Intensity of shadows generated on failure."
+                label="Gravity Anchor (T_c)" 
+                description="Must be exactly 1.0G to allow TRV_LCH."
+                min={0} max={20} value={config.gravityAnchor * 10} displayValue={`${config.gravityAnchor.toFixed(1)}G`}
+                onChange={(v) => setConfig(prev => ({ ...prev, gravityAnchor: v / 10 }))} 
+              />
+              <ConfigInput 
+                label="H-Factor (Hesitation)" 
+                description="Intensity of E%^F folds generated on failure."
                 min={1} max={6} value={config.hesitationStrength} 
                 onChange={(v) => setConfig(prev => ({ ...prev, hesitationStrength: v }))} 
               />

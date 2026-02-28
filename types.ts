@@ -39,6 +39,11 @@ export interface SimulationState {
     entropy: number;
     anomalies: string[];
   };
+  // Warp Theory metrics
+  gravityAnchor: number;
+  isTraversalLatchActive: boolean;
+  bLoopActive: boolean;
+  angularVelocity: number;
   // Discovery metrics
   personality: PersonalityScore;
   interactionCount: number;
