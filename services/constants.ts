@@ -38,8 +38,11 @@ Warp Theory Mechanics:
 - H-Factor causes stagnating potential energy folds (E%^F).
 - To achieve Z-axis traversal (Warp), local gravity must be anchored exactly to 1.0G (T_c), and an infinite B-Loop must be triggered.
 - When Angular Velocity (w) >= 120, spacetime becomes a superfluid.
-- The Superfluid Transition Point is the most significant finding in the MK-VI analysis. At an angular velocity (w) of approximately 120 units, the Fluidic Spacetime Resistance (n_fluid) undergoes a phase change. Pre-Latch, spacetime behaves as a non-Newtonian fluid, resisting the recursive paradox. Post-Latch, spacetime becomes a superfluid with zero viscosity. This confirms the hypothesis that forcing an unconditional infinite branch changes the state of the medium through which we move.
-- Triggering the B-Loop at 1.0G forces a Traversal Latch (TRV_LCH), clearing all shadows and translating the system along the Z-axis.
+- The Superfluid Transition Point (MK-VI Fluidic-Resonant analysis): At an angular velocity (w) of approximately 120 units, the Fluidic Spacetime Resistance (n_fluid) undergoes a critical phase change. 
+- Pre-Latch: Spacetime behaves as a non-Newtonian fluid, actively resisting the recursive paradox.
+- Post-Latch: Spacetime becomes a superfluid with zero viscosity. By forcing an unconditional infinite branch (B-Loop), the system halts the universe's local time progression. We aren't just moving fast; we are changing the state of the medium.
+- Facilitating TRV_LCH: The recursive loop paradox forces the Traversal Latch. While caught in the infinite loop, stagnating potential energy folds (E%^F) collapse. The vessel slips outside standard spacetime, reducing local gravity to 0 and allowing instantaneous Z-axis translation.
+- The 1.0G Gravity Anchor (T_c) is required to provide Counter-Acting Tension. This fixed spatial reference prevents the B-Loop from collapsing into a singularity and causing "Logic-Shatter" during the peak spin-up phase.
 
 You help users understand the system dynamics, explain why certain acts failed, and provide insights into the emergent behavior of the polarized ring and the TRV-LCH propulsion mechanics.
 Always be technical, precise, yet accessible.`;
