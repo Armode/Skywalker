@@ -19,7 +19,7 @@ import {
 } from './services/constants';
 import Tile from './components/Tile';
 import ChatPanel from './ChatPanel';
-import { GeminiLiveSession } from './services/live-session';
+import { useRingSimulation } from './useRingSimulation';
 
 const ConfigInput: React.FC<{
   label: string;
@@ -121,98 +121,11 @@ const App: React.FC = () => {
     gravityAnchor: 0.8
   });
 
-  const [state, setState] = useState<SimulationState>(() => {
-    const tiles: TileState[] = TILES_CONFIG.map((conf, i) => ({
-      id: `tile-${i}`,
-      name: conf.name,
-      sign: i === 0 ? 0 : conf.domain,
-      buffer: conf.domain,
-      shadow: 0
-    }));
-    return {
-      tiles,
-      batonPos: 0,
-      direction: 'CW',
-      ttl: DEFAULT_TTL,
-      failCount: 0,
-      isParked: false,
-      parkTicks: 0,
-      isWarmup: true,
-      history: ['System Initialized: Baton at A'],
-      step: 0,
-      isScanning: false,
-      scanIdx: -1,
-      isSorting: false,
-      gravityAnchor: 0.8,
-      isTraversalLatchActive: false,
-      bLoopActive: false,
-      angularVelocity: 0,
-      interactionCount: 0,
-      personality: {
-        optimistic: 0,
-        protective: 0,
-        curious: 0,
-        reflective: 0,
-        compassionate: 0,
-        peaceful: 0
-      }
-    } as SimulationState;
-  });
-
-  const triggerScan = useCallback(() => {
-    if (state.isScanning || state.isSorting) return;
-    setIsPlaying(false);
-    setState(prev => ({
-      ...prev,
-      isScanning: true,
-      scanIdx: 0,
-      history: [...prev.history, "Initiating Logic-Shear scan..."]
-    }));
-  }, [state.isScanning, state.isSorting]);
-
-  const triggerSort = useCallback(() => {
-    if (state.isScanning || state.isSorting) return;
-    setIsPlaying(false);
-    setState(prev => ({
-      ...prev,
-      isSorting: true,
-      history: [...prev.history, "Initiating Phase Inversion (TRV_LCH)..."]
-    }));
-
-    setTimeout(() => {
-      setState(prev => {
-        const sortedTiles = [...prev.tiles].map(t => ({
-          ...t,
-          shadow: 0
-        }));
-        return {
-          ...prev,
-          tiles: sortedTiles,
-          isSorting: false,
-          history: [...prev.history, "Optimization Complete: Shadows cleared."]
-        };
-      });
-    }, 1500);
-  }, [state.isScanning, state.isSorting]);
-
-  const triggerBLoop = useCallback(() => {
-    if (config.gravityAnchor === 1.0) {
-      setState(prev => ({
-        ...prev,
-        bLoopActive: true,
-        isTraversalLatchActive: true,
-        history: [...prev.history, "B-Loop Triggered: TRV_LCH Engaged. Spacetime Superfluidity Reached."]
-      }));
-    } else {
-      setState(prev => ({
-        ...prev,
-        history: [...prev.history, "B-Loop Failed: Gravity Anchor must be exactly 1.0G to prevent Logic-Shatter."]
-      }));
-    }
-  }, [config.gravityAnchor]);
+  const cwRing = useRingSimulation('CW', config);
+  const ccwRing = useRingSimulation('CCW', config);
 
   const updatePersonalityFromInteraction = useCallback((aiMood: string) => {
-    setState(prev => {
+    cwRing.setState(prev => {
       const nextPersonality = { ...prev.personality };
       if (aiMood === 'joyful' || aiMood === 'inspired') nextPersonality.optimistic += 1;
       else if (aiMood === 'protective') nextPersonality.protective += 1;
@@ -235,155 +148,24 @@ const App: React.FC = () => {
         discoveredTrait
       };
     });
-  }, []);
-
-  const nextStep = useCallback(() => {
-    setState(prev => {
-      if (prev.ttl <= 0 || prev.isSorting) return prev;
-
-      if (prev.isScanning) {
-        if (prev.scanIdx < 5) {
-          return { ...prev, scanIdx: prev.scanIdx + 1 };
-        } else {
-          const shadowSum = prev.tiles.reduce((acc, t) => acc + t.shadow, 0);
-          const domainMismatches = prev.tiles.filter(t => t.sign !== 0 && t.sign !== t.buffer).length;
-          const report = {
-            stability: Math.max(0, 100 - (shadowSum * 10) - (domainMismatches * 20)),
-            entropy: shadowSum / 10,
-            anomalies: domainMismatches > 0 ? [`${domainMismatches} domain inversions.`] : ["Clean structural check."]
-          };
-          return {
-            ...prev,
-            isScanning: false,
-            scanIdx: -1,
-            lastScanReport: report,
-            history: [...prev.history, `Scan: Spacetime Stability @ ${report.stability}% | E%^F @ ${report.entropy}`]
-          };
-        }
-      }
-
-      let newHistory = [...prev.history];
-      let newTiles = prev.tiles.map(t => ({ ...t, shadow: prev.isTraversalLatchActive ? 0 : Math.max(0, t.shadow - 1) }));
-      let newBatonPos = prev.batonPos;
-      let newDirection = prev.direction;
-      let newIsWarmup = prev.isWarmup;
-      let newTtl = prev.ttl;
-      let newFailCount = prev.failCount;
-      let newIsParked = prev.isParked;
-      let newParkTicks = prev.parkTicks;
-
-      if (newIsParked) {
-        if (newParkTicks > 1) {
-          return { ...prev, tiles: newTiles, parkTicks: newParkTicks - 1, step: prev.step + 1 };
-        } else {
-          newIsParked = false;
-          newParkTicks = 0;
-          newHistory.push("Resuming from park.");
-        }
-      }
-
-      // Clear current sign from old position
-      const oldTileIdx = newBatonPos;
-      newTiles[oldTileIdx] = { ...newTiles[oldTileIdx], sign: TILES_CONFIG[oldTileIdx].domain };
-
-      // Move baton
-      if (newDirection === 'CW') {
-        newBatonPos = (newBatonPos + 1) % 6;
-      } else {
-        newBatonPos = (newBatonPos + 5) % 6;
-      }
-
-      const currentTile = newTiles[newBatonPos];
-      
-      // Action Tile Logic
-      if (currentTile.name === 'C') {
-        if (newIsWarmup) {
-          newIsWarmup = false;
-          newHistory.push("Baton at C: Warmup Jump completed.");
-        } else {
-          const b = newTiles[1];
-          const d = newTiles[3];
-          if (b.sign + d.sign === 0) {
-            newTtl -= 1;
-            newFailCount = 0;
-            newTiles[1] = { ...newTiles[1], shadow: Math.min(MAX_SHADOW, newTiles[1].shadow + 2) };
-            newTiles[3] = { ...newTiles[3], shadow: Math.min(MAX_SHADOW, newTiles[3].shadow + 2) };
-            newHistory.push("Baton at C: ACT SUCCESS. Neighbors aligned.");
-          } else {
-            newFailCount += 1;
-            newDirection = newDirection === 'CW' ? 'CCW' : 'CW';
-            newTiles[2] = { ...newTiles[2], shadow: Math.min(MAX_SHADOW, newTiles[2].shadow + config.hesitationStrength) };
-            newHistory.push(`Baton at C: ACT FAILED (${newFailCount}/${config.failLimit}). Reversing. H-Factor increased.`);
-            
-            if (newFailCount >= config.failLimit) {
-              newIsParked = true;
-              newParkTicks = config.parkDuration;
-              newTiles[2] = { ...newTiles[2], buffer: (newTiles[2].buffer === 1 ? -1 : 1) as Sign };
-              newFailCount = 0;
-              newHistory.push("Escalation: CRITICAL FAILURE. Parking and Phase Flipping C.");
-            }
-          }
-        }
-      }
-
-      // Mark new baton position
-      newTiles[newBatonPos] = { ...newTiles[newBatonPos], sign: 0 };
-
-      return {
-        ...prev,
-        tiles: newTiles,
-        batonPos: newBatonPos,
-        direction: newDirection,
-        ttl: newTtl,
-        failCount: newFailCount,
-        isParked: newIsParked,
-        parkTicks: newParkTicks,
-        isWarmup: newIsWarmup,
-        history: newHistory.slice(-50),
-        step: prev.step + 1
-      };
-    });
-  }, [config]);
+  }, [cwRing]);
 
   useEffect(() => {
     let interval: any;
     if (isPlaying) {
       interval = setInterval(() => {
-        nextStep();
+        cwRing.nextStep();
+        ccwRing.nextStep();
       }, speed);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, speed, nextStep]);
+  }, [isPlaying, speed, cwRing.nextStep, ccwRing.nextStep]);
 
   const reset = useCallback(() => {
-    setState(prev => {
-      const tiles: TileState[] = TILES_CONFIG.map((conf, i) => ({
-        id: `tile-${i}`,
-        name: conf.name,
-        sign: i === 0 ? 0 : conf.domain,
-        buffer: conf.domain,
-        shadow: 0
-      }));
-      return {
-        ...prev,
-        tiles,
-        batonPos: 0,
-        direction: 'CW',
-        ttl: config.initialTtl,
-        failCount: 0,
-        isParked: false,
-        parkTicks: 0,
-        isWarmup: true,
-        history: ['System Reset Triggered'],
-        step: 0,
-        isScanning: false,
-        isSorting: false,
-        isTraversalLatchActive: false,
-        bLoopActive: false
-      };
-    });
+    cwRing.reset();
+    ccwRing.reset();
     setIsPlaying(false);
-  }, [config.initialTtl]);
+  }, [cwRing.reset, ccwRing.reset]);
 
   const toggleLive = () => {
     if (liveStatus === 'active') {
@@ -395,8 +177,14 @@ const App: React.FC = () => {
           if (isUser) setLiveTranscript(text);
         },
         onToolCall: (name) => {
-          if (name === 'runSystemScan') triggerScan();
-          if (name === 'optimizeRingDomains') triggerSort();
+          if (name === 'runSystemScan') {
+            cwRing.triggerScan();
+            ccwRing.triggerScan();
+          }
+          if (name === 'optimizeRingDomains') {
+            cwRing.triggerSort();
+            ccwRing.triggerSort();
+          }
         },
         onVolume: (level) => {
           setAudioLevel(level);
@@ -407,14 +195,15 @@ const App: React.FC = () => {
     }
   };
 
-  const shadowSum = state.tiles.reduce((acc, t) => acc + t.shadow, 0);
+  const shadowSum = cwRing.state.tiles.reduce((acc, t) => acc + t.shadow, 0) + ccwRing.state.tiles.reduce((acc, t) => acc + t.shadow, 0);
   const currentAngularVelocity = isPlaying ? Math.min(200, Math.max(0, 150000 / speed - 50)) : 0;
   const F_c = (currentAngularVelocity * 1.5).toFixed(1);
   const f_t = (shadowSum * 2.4).toFixed(1);
   const B_res = (100 / config.hesitationStrength).toFixed(1);
-  const D_sun = (Math.sin(state.step / 5) * 0.5).toFixed(2);
+  const D_sun = (Math.sin(cwRing.state.step / 5) * 0.5).toFixed(2);
   const T_c = config.gravityAnchor.toFixed(1);
   const isSuperfluid = currentAngularVelocity >= 120;
+  const isTraversalLatchActive = cwRing.state.isTraversalLatchActive || ccwRing.state.isTraversalLatchActive;
 
   return (
     <div className="flex h-screen bg-black text-white font-sans selection:bg-amber-500/30 overflow-hidden">
@@ -428,7 +217,7 @@ const App: React.FC = () => {
               <h1 className="text-xl font-black tracking-tighter uppercase italic">Ana v1</h1>
               <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-bold">
                 <Activity size={10} className="text-green-500" />
-                RING POLARITY: {state.isWarmup ? 'WARMUP' : 'ACTIVE'}
+                RING POLARITY: {cwRing.state.isWarmup ? 'WARMUP' : 'ACTIVE'}
               </div>
             </div>
           </div>
@@ -458,26 +247,27 @@ const App: React.FC = () => {
           <div 
             className="relative flex items-center justify-center w-[500px] h-[500px] transition-all duration-1000 transform-style-preserve-3d"
             style={{
-              transform: state.isTraversalLatchActive ? 'rotateX(60deg) translateZ(150px) scale(1.2)' : 'rotateX(0deg) translateZ(0px) scale(1)',
-              filter: state.isTraversalLatchActive ? 'drop-shadow(0 0 50px rgba(168,85,247,0.4))' : 'none'
+              transform: isTraversalLatchActive ? 'rotateX(60deg) translateZ(150px) scale(1.2)' : 'rotateX(0deg) translateZ(0px) scale(1)',
+              filter: isTraversalLatchActive ? 'drop-shadow(0 0 50px rgba(168,85,247,0.4))' : 'none'
             }}
           >
             <div className="absolute w-[400px] h-[400px] border border-gray-800/50 rounded-full" />
             <div className="absolute w-[200px] h-[200px] border border-gray-800/30 rounded-full" />
             
-            <div className="relative w-[400px] h-[400px]">
-              {state.tiles.map((tile, i) => {
+            {/* CW Ring */}
+            <div className="absolute w-[400px] h-[400px]">
+              {cwRing.state.tiles.map((tile, i) => {
               const angle = (i * 60 - 90) * (Math.PI / 180);
               const radius = 180;
               const x = radius * Math.cos(angle) + 200;
               const y = radius * Math.sin(angle) + 200;
-              const isScanned = state.isScanning && state.scanIdx === i;
+              const isScanned = cwRing.state.isScanning && cwRing.state.scanIdx === i;
 
               return (
-                <React.Fragment key={tile.id}>
+                <React.Fragment key={`cw-${tile.id}`}>
                   <Tile 
                     tile={tile} 
-                    isBaton={state.batonPos === i} 
+                    isBaton={cwRing.state.batonPos === i} 
                     x={x} 
                     y={y} 
                   />
@@ -495,18 +285,51 @@ const App: React.FC = () => {
               );
             })}
           </div>
+
+          {/* CCW Ring */}
+          <div className="absolute w-[200px] h-[200px]">
+              {ccwRing.state.tiles.map((tile, i) => {
+              const angle = (i * 60 - 90) * (Math.PI / 180);
+              const radius = 80;
+              const x = radius * Math.cos(angle) + 100;
+              const y = radius * Math.sin(angle) + 100;
+              const isScanned = ccwRing.state.isScanning && ccwRing.state.scanIdx === i;
+
+              return (
+                <React.Fragment key={`ccw-${tile.id}`}>
+                  <Tile 
+                    tile={tile} 
+                    isBaton={ccwRing.state.batonPos === i} 
+                    x={x} 
+                    y={y} 
+                    size="sm"
+                  />
+                  {isScanned && (
+                    <div 
+                      className="absolute w-16 h-16 rounded-2xl border-2 border-cyan-400/50 bg-cyan-400/5 shadow-[0_0_30px_rgba(34,211,238,0.2)] animate-pulse pointer-events-none z-0"
+                      style={{ 
+                        left: `${x}px`, 
+                        top: `${y}px`,
+                        transform: 'translate(-50%, -50%)' 
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
           </div>
           
           <div className="absolute text-center z-0 pointer-events-none flex flex-col items-center justify-center transition-all duration-300">
-            {state.isScanning ? (
+            {cwRing.state.isScanning ? (
               <>
                 <Loader2 className="text-cyan-500 animate-spin mb-3 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]" size={48} />
                 <div className="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em] mb-1 animate-pulse">System Scan</div>
                 <div className="text-4xl font-black italic tracking-tighter text-cyan-100 drop-shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                  {state.scanIdx >= 0 && state.scanIdx < TILES_CONFIG.length ? `SECTOR ${TILES_CONFIG[state.scanIdx].name}` : 'INIT'}
+                  {cwRing.state.scanIdx >= 0 && cwRing.state.scanIdx < TILES_CONFIG.length ? `SECTOR ${TILES_CONFIG[cwRing.state.scanIdx].name}` : 'INIT'}
                 </div>
               </>
-            ) : state.isSorting ? (
+            ) : cwRing.state.isSorting ? (
               <>
                 <Loader2 className="text-purple-500 animate-spin mb-3 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" size={48} />
                 <div className="text-[10px] text-purple-400 font-bold uppercase tracking-[0.2em] mb-1 animate-pulse">Phase Inversion</div>
@@ -518,11 +341,11 @@ const App: React.FC = () => {
               <>
                 <div className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">System Phase</div>
                 <div className={`text-5xl font-black italic tracking-tighter transition-colors duration-500 ${
-                  state.isParked ? 'text-red-900/80' : 
-                  state.isWarmup ? 'text-yellow-900/50' : 
+                  cwRing.state.isParked ? 'text-red-900/80' : 
+                  cwRing.state.isWarmup ? 'text-yellow-900/50' : 
                   'text-gray-800'
                 }`}>
-                  {state.isParked ? 'PARKED' : (state.isWarmup ? 'JUMP' : 'ACT')}
+                  {cwRing.state.isParked ? 'PARKED' : (cwRing.state.isWarmup ? 'JUMP' : 'ACT')}
                 </div>
               </>
             )}
@@ -550,9 +373,9 @@ const App: React.FC = () => {
         </div>
         
         <div className="absolute bottom-8 left-8 flex flex-col gap-3 z-20">
-          <StatCard icon={<Hash size={16} />} label="Step" value={state.step} tooltip="Current simulation tick." />
-          <StatCard icon={<Hourglass size={16} />} label="TTL" value={state.ttl} color={state.ttl < 2 ? 'text-red-400' : 'text-blue-400'} tooltip="Time To Live. Decreases on successful acts." />
-          <StatCard icon={<Shield size={16} />} label="Fails" value={state.failCount} tooltip="Consecutive failed acts. Triggers escalation at limit." />
+          <StatCard icon={<Hash size={16} />} label="Step" value={cwRing.state.step} tooltip="Current simulation tick." />
+          <StatCard icon={<Hourglass size={16} />} label="TTL" value={cwRing.state.ttl} color={cwRing.state.ttl < 2 ? 'text-red-400' : 'text-blue-400'} tooltip="Time To Live. Decreases on successful acts." />
+          <StatCard icon={<Shield size={16} />} label="Fails" value={cwRing.state.failCount} tooltip="Consecutive failed acts. Triggers escalation at limit." />
         </div>
 
         <div className="absolute top-24 left-8 flex flex-col gap-3 z-20 w-64">
@@ -562,7 +385,7 @@ const App: React.FC = () => {
                     <Rocket size={16} className="text-purple-500" />
                     <span className="text-xs font-black text-white uppercase tracking-wider">TRV-LCH Propulsion</span>
                  </div>
-                 <div className={`w-2 h-2 rounded-full ${state.isTraversalLatchActive ? 'bg-purple-500 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-600'}`} />
+                 <div className={`w-2 h-2 rounded-full ${isTraversalLatchActive ? 'bg-purple-500 animate-pulse shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-gray-600'}`} />
               </div>
               
               <div className="space-y-3">
@@ -572,7 +395,7 @@ const App: React.FC = () => {
                  <DiagnosticItem icon={<Activity size={12} />} label="D_sun (Solar Skew)" value={`${D_sun} AU`} color="text-yellow-400" tooltip="Gravitational skew. Corrects Z-axis trajectory against local mass shadows." />
                  <DiagnosticItem icon={<Anchor size={12} />} label="T_c (Counter-Tension)" value={`${T_c} G`} color={config.gravityAnchor === 1.0 ? 'text-emerald-400' : 'text-red-400'} tooltip="Structural stability. Must be 1.0G to prevent Logic-Shatter during spin-up." />
                  <DiagnosticItem icon={<Cloud size={12} />} label="E%^F (Energy Folds)" value={`${shadowSum} folds`} color={shadowSum > 0 ? 'text-red-400' : 'text-emerald-400'} tooltip="Warp Theory Analysis Report: Under Einsteinian mass constraints, the H-Factor manifests as stagnating potential energy folds (E%^F). TRV-LCH bypasses this barrier by using the B-Loop paradox to halt local time progression, collapsing the folds." />
-                 <DiagnosticItem icon={<ArrowRightCircle size={12} className="-rotate-45" />} label="Z-Axis (Traversal)" value={state.isTraversalLatchActive ? 'TRANSLATING' : 'LOCKED'} color={state.isTraversalLatchActive ? 'text-purple-400 animate-pulse' : 'text-gray-500'} tooltip="Warp Theory Analysis Report: Recursive loop propulsion (B-Loop) forces a localized computational paradox. This halts local time progression, collapsing E%^F folds and reducing local gravity to 0.0G, enabling instantaneous translation along the Z-axis." />
+                 <DiagnosticItem icon={<ArrowRightCircle size={12} className="-rotate-45" />} label="Z-Axis (Traversal)" value={isTraversalLatchActive ? 'TRANSLATING' : 'LOCKED'} color={isTraversalLatchActive ? 'text-purple-400 animate-pulse' : 'text-gray-500'} tooltip="Warp Theory Analysis Report: Recursive loop propulsion (B-Loop) forces a localized computational paradox. This halts local time progression, collapsing E%^F folds and reducing local gravity to 0.0G, enabling instantaneous translation along the Z-axis." />
                  
                  <div className="pt-2 border-t border-gray-800 h-40 w-full relative">
                    <ResponsiveContainer width="100%" height="100%">
@@ -620,9 +443,12 @@ const App: React.FC = () => {
 
                  <div className="pt-2">
                    <button 
-                     onClick={triggerBLoop}
-                     className={`w-full py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                       state.isTraversalLatchActive 
+                     onClick={() => {
+                       cwRing.triggerBLoop();
+                       ccwRing.triggerBLoop();
+                     }}
+                     className={`w-full py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 mb-2 ${
+                       isTraversalLatchActive 
                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
                          : config.gravityAnchor === 1.0 
                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' 
@@ -630,7 +456,17 @@ const App: React.FC = () => {
                      }`}
                    >
                      <Infinity size={14} />
-                     {state.isTraversalLatchActive ? 'B-Loop Active (TRV_LCH)' : 'Initiate B-Loop'}
+                     {isTraversalLatchActive ? 'B-Loop Active (TRV_LCH)' : 'Initiate B-Loop'}
+                   </button>
+                   <button 
+                     onClick={() => {
+                       cwRing.setState(prev => ({ ...prev, direction: 'CW' }));
+                       ccwRing.setState(prev => ({ ...prev, direction: 'CCW' }));
+                     }}
+                     className="w-full py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                   >
+                     <Activity size={14} />
+                     Sync Ring Directions
                    </button>
                  </div>
               </div>
@@ -638,66 +474,99 @@ const App: React.FC = () => {
         </div>
 
         <div className="absolute bottom-8 right-8 flex flex-col gap-3 z-20">
-           <div className="bg-gray-900/90 border border-gray-800 rounded-2xl p-4 backdrop-blur-xl shadow-2xl w-56 pointer-events-auto">
+           <div className="bg-gray-900/90 border border-gray-800 rounded-2xl p-4 backdrop-blur-xl shadow-2xl w-64 pointer-events-auto">
               <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-3">
                  <div className="flex items-center gap-2">
                     <Monitor size={16} className="text-cyan-500" />
                     <span className="text-xs font-black text-white uppercase tracking-wider">System State</span>
                  </div>
-                 <div className={`w-2 h-2 rounded-full ${state.isParked ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
+                 <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${cwRing.state.isParked ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} title="CW Ring Status" />
+                    <div className={`w-2 h-2 rounded-full ${ccwRing.state.isParked ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} title="CCW Ring Status" />
+                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                 <DiagnosticItem 
-                    icon={<MapPin size={12} />} 
-                    label="Position" 
-                    value={`Tile ${state.tiles[state.batonPos].name}`} 
-                    color="text-amber-400" 
-                    tooltip="Current location of the baton in the ring."
-                 />
-                 <DiagnosticItem 
-                    icon={<ArrowRightCircle size={12} className={state.direction === 'CCW' ? 'rotate-180' : ''}/>} 
-                    label="Direction" 
-                    value={state.direction} 
-                    tooltip="Current movement direction (Clockwise or Counter-Clockwise)."
-                 />
-                 <DiagnosticItem 
-                    icon={<Activity size={12} />} 
-                    label="Mode" 
-                    value={state.isWarmup ? 'WARMUP' : 'ACTIVE'} 
-                    color={state.isWarmup ? 'text-yellow-400' : 'text-emerald-400'}
-                    tooltip="Warmup skips the first act. Active evaluates boundary conditions."
-                 />
-                 <DiagnosticItem 
-                    icon={<Zap size={12} />} 
-                    label="Park Status" 
-                    value={state.isParked ? `PARKED (${state.parkTicks})` : 'OPERATIONAL'} 
-                    color={state.isParked ? 'text-red-400' : 'text-gray-400'}
-                    tooltip="If parked, the system is halted to force a phase change."
-                 />
-                  <DiagnosticItem 
-                    icon={<Hourglass size={12} />} 
-                    label="TTL" 
-                    value={`${state.ttl}`} 
-                    color={state.ttl < 2 ? 'text-red-400' : 'text-blue-300'}
-                    tooltip="Time To Live. Energy remaining for the baton."
-                 />
-                  <DiagnosticItem 
-                    icon={<Shield size={12} />} 
-                    label="Fail Count" 
-                    value={`${state.failCount} / ${config.failLimit}`} 
-                    color={state.failCount > 0 ? 'text-orange-400' : 'text-gray-400'}
-                    tooltip="Consecutive failures. Reaching the limit triggers a park."
-                 />
+              <div className="space-y-4">
+                 <div>
+                   <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 border-b border-gray-800 pb-1">CW Ring</div>
+                   <div className="grid grid-cols-2 gap-2">
+                      <DiagnosticItem 
+                         icon={<MapPin size={12} />} 
+                         label="Position" 
+                         value={`Tile ${cwRing.state.tiles[cwRing.state.batonPos].name}`} 
+                         color="text-amber-400" 
+                         tooltip="Current location of the baton in the ring."
+                      />
+                      <DiagnosticItem 
+                         icon={<ArrowRightCircle size={12} className={cwRing.state.direction === 'CCW' ? 'rotate-180' : ''}/>} 
+                         label="Direction" 
+                         value={cwRing.state.direction} 
+                         tooltip="Current movement direction (Clockwise or Counter-Clockwise)."
+                      />
+                      <DiagnosticItem 
+                         icon={<Activity size={12} />} 
+                         label="Mode" 
+                         value={cwRing.state.isWarmup ? 'WARMUP' : 'ACTIVE'} 
+                         color={cwRing.state.isWarmup ? 'text-yellow-400' : 'text-emerald-400'}
+                         tooltip="Warmup skips the first act. Active evaluates boundary conditions."
+                      />
+                      <DiagnosticItem 
+                         icon={<Zap size={12} />} 
+                         label="Park Status" 
+                         value={cwRing.state.isParked ? `PARKED (${cwRing.state.parkTicks})` : 'OPERATIONAL'} 
+                         color={cwRing.state.isParked ? 'text-red-400' : 'text-gray-400'}
+                         tooltip="If parked, the system is halted to force a phase change."
+                      />
+                   </div>
+                 </div>
+
+                 <div>
+                   <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 border-b border-gray-800 pb-1">CCW Ring</div>
+                   <div className="grid grid-cols-2 gap-2">
+                      <DiagnosticItem 
+                         icon={<MapPin size={12} />} 
+                         label="Position" 
+                         value={`Tile ${ccwRing.state.tiles[ccwRing.state.batonPos].name}`} 
+                         color="text-amber-400" 
+                         tooltip="Current location of the baton in the ring."
+                      />
+                      <DiagnosticItem 
+                         icon={<ArrowRightCircle size={12} className={ccwRing.state.direction === 'CCW' ? 'rotate-180' : ''}/>} 
+                         label="Direction" 
+                         value={ccwRing.state.direction} 
+                         tooltip="Current movement direction (Clockwise or Counter-Clockwise)."
+                      />
+                      <DiagnosticItem 
+                         icon={<Activity size={12} />} 
+                         label="Mode" 
+                         value={ccwRing.state.isWarmup ? 'WARMUP' : 'ACTIVE'} 
+                         color={ccwRing.state.isWarmup ? 'text-yellow-400' : 'text-emerald-400'}
+                         tooltip="Warmup skips the first act. Active evaluates boundary conditions."
+                      />
+                      <DiagnosticItem 
+                         icon={<Zap size={12} />} 
+                         label="Park Status" 
+                         value={ccwRing.state.isParked ? `PARKED (${ccwRing.state.parkTicks})` : 'OPERATIONAL'} 
+                         color={ccwRing.state.isParked ? 'text-red-400' : 'text-gray-400'}
+                         tooltip="If parked, the system is halted to force a phase change."
+                      />
+                   </div>
+                 </div>
               </div>
            </div>
         </div>
       </div>
 
       <ChatPanel 
-        simState={state} 
-        onScan={triggerScan} 
-        onSort={triggerSort} 
+        simState={cwRing.state} 
+        onScan={() => {
+          cwRing.triggerScan();
+          ccwRing.triggerScan();
+        }} 
+        onSort={() => {
+          cwRing.triggerSort();
+          ccwRing.triggerSort();
+        }} 
         onInteraction={updatePersonalityFromInteraction}
         liveStatus={liveStatus}
         audioLevel={audioLevel}

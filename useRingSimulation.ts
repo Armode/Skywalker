@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { SimulationState, TileState, Sign } from './types';
-import { TILES_CONFIG, MAX_SHADOW, HESITATION_STRENGTH as DEFAULT_HESITATION, PARK_DURATION as DEFAULT_PARK, FAIL_LIMIT as DEFAULT_FAIL_LIMIT, INITIAL_TTL as DEFAULT_TTL } from './constants';
+import { TILES_CONFIG, MAX_SHADOW, HESITATION_STRENGTH as DEFAULT_HESITATION, PARK_DURATION as DEFAULT_PARK, FAIL_LIMIT as DEFAULT_FAIL_LIMIT, INITIAL_TTL as DEFAULT_TTL } from './services/constants';
 
 export function useRingSimulation(initialDirection: 'CW' | 'CCW', config: any) {
   const [state, setState] = useState<SimulationState>(() => {
